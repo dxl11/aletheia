@@ -1,0 +1,17 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /aletheia
+
+spring:
+  application:
+    name: aletheia-web
+
+aletheia:
+  collector:
+    dataDir: ${java.io.tmpdir}/aletheia
+
+logging:
+  level:
+    com.alibaba.aletheia: INFO
+    root: INFO

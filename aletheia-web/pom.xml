@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.alibaba</groupId>
+        <artifactId>aletheia</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>aletheia-web</artifactId>
+    <packaging>jar</packaging>
+
+    <name>aletheia-web</name>
+    <description>Web UI module for Aletheia</description>
+
+    <dependencies>
+        <!-- Spring Boot -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
+        <!-- Common module -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>aletheia-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Collector module -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>aletheia-collector</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Analyzer module -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>aletheia-analyzer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- SLF4J -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
