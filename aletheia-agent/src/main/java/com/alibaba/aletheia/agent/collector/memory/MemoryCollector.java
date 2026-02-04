@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryPoolMXBean;
+import java.lang.reflect.Field;
+import java.util.List;
 
 /**
  * 内存数据采集器
@@ -60,10 +62,18 @@ public class MemoryCollector {
 
             // 直接内存（如果可获取）
             try {
-                sun.misc.VM.maxDirectMemory();
-                // TODO: 通过反射或其他方式获取实际使用的直接内存
+                // 通过反射获取 java.nio.Bits 中的直接内存使用量
+                Class<?> bitsClass = Class.forName("java.nio.Bits");
+                Field reservedMemoryField = bitsClass.getDeclaredField("reservedMemory");
+                reservedMemoryField.setAccessible(true);
+                Long reservedMemory = (Long) reservedMemoryField.get(null);
+                
+                if (reservedMemory != null) {
+                    event.setDirectMemoryUsedBytes(reservedMemory);
+                }
             } catch (Exception e) {
-                // 忽略，直接内存可能无法获取
+                // 忽略，直接内存可能无法获取（某些 JVM 版本或配置可能不支持）
+                LOGGER.debug("Unable to get direct memory usage", e);
             }
 
             return event;
