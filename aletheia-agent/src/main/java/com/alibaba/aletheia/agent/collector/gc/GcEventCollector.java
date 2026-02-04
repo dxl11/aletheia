@@ -1,9 +1,9 @@
 package com.alibaba.aletheia.agent.collector.gc;
 
+import com.alibaba.aletheia.agent.collector.BaseCollector;
+import com.alibaba.aletheia.agent.config.AgentConfig;
 import com.alibaba.aletheia.common.model.GcEvent;
 import com.alibaba.aletheia.common.util.TimeUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.management.Notification;
 import javax.management.NotificationListener;
@@ -22,30 +22,51 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * @author Aletheia Team
  */
-public class GcEventCollector implements NotificationListener {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(GcEventCollector.class);
+public class GcEventCollector extends BaseCollector implements NotificationListener {
 
     private final List<GcEvent> gcEvents = new CopyOnWriteArrayList<>();
     private final MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+    private List<GarbageCollectorMXBean> gcBeans;
 
     /**
-     * 构造函数，注册 GC 通知监听器
+     * 构造函数
      */
-    public GcEventCollector() {
-        try {
-            // 为每个 GC MXBean 注册监听器
-            List<GarbageCollectorMXBean> gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
+    public GcEventCollector(AgentConfig config) {
+        super(config);
+    }
+
+    @Override
+    protected boolean isFeatureEnabled() {
+        return config.isFeatureEnabled("GC");
+    }
+
+    @Override
+    protected void doStart() throws Exception {
+        // 为每个 GC MXBean 注册监听器
+        gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
+        for (GarbageCollectorMXBean gcBean : gcBeans) {
+            if (gcBean instanceof javax.management.NotificationEmitter) {
+                ((javax.management.NotificationEmitter) gcBean)
+                        .addNotificationListener(this, null, null);
+            }
+        }
+        logger.info("GcEventCollector started, monitoring {} GC beans", gcBeans.size());
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        // 移除监听器
+        if (gcBeans != null) {
             for (GarbageCollectorMXBean gcBean : gcBeans) {
                 if (gcBean instanceof javax.management.NotificationEmitter) {
-                    ((javax.management.NotificationEmitter) gcBean)
-                            .addNotificationListener(this, null, null);
+                    try {
+                        ((javax.management.NotificationEmitter) gcBean)
+                                .removeNotificationListener(this);
+                    } catch (Exception e) {
+                        logger.warn("Failed to remove GC notification listener", e);
+                    }
                 }
             }
-
-            LOGGER.info("GcEventCollector initialized, monitoring {} GC beans", gcBeans.size());
-        } catch (Exception e) {
-            LOGGER.error("Failed to initialize GcEventCollector", e);
         }
     }
 
@@ -57,7 +78,7 @@ public class GcEventCollector implements NotificationListener {
                 processGcNotification(notification);
             }
         } catch (Exception e) {
-            LOGGER.error("Error handling GC notification", e);
+            logger.error("Error handling GC notification", e);
         }
     }
 
@@ -94,9 +115,9 @@ public class GcEventCollector implements NotificationListener {
             updateMemoryInfo(event);
 
             gcEvents.add(event);
-            LOGGER.debug("GC event collected: {}", event);
+            logger.debug("GC event collected: {}", event);
         } catch (Exception e) {
-            LOGGER.error("Error processing GC notification", e);
+            logger.error("Error processing GC notification", e);
         }
     }
 
@@ -126,7 +147,7 @@ public class GcEventCollector implements NotificationListener {
             event.setHeapUsedAfterBytes(heapUsed);
             // TODO: 记录 GC 前的堆内存使用量（需要提前记录）
         } catch (Exception e) {
-            LOGGER.error("Error updating memory info", e);
+            logger.error("Error updating memory info", e);
         }
     }
 

@@ -1,9 +1,9 @@
 package com.alibaba.aletheia.agent.collector.thread;
 
+import com.alibaba.aletheia.agent.collector.BaseCollector;
+import com.alibaba.aletheia.agent.config.AgentConfig;
 import com.alibaba.aletheia.common.model.ThreadEvent;
 import com.alibaba.aletheia.common.util.TimeUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -18,11 +18,31 @@ import java.util.Map;
  *
  * @author Aletheia Team
  */
-public class ThreadCollector {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ThreadCollector.class);
+public class ThreadCollector extends BaseCollector {
 
     private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+
+    /**
+     * 构造函数
+     */
+    public ThreadCollector(AgentConfig config) {
+        super(config);
+    }
+
+    @Override
+    protected boolean isFeatureEnabled() {
+        return config.isFeatureEnabled("Thread");
+    }
+
+    @Override
+    protected void doStart() throws Exception {
+        // ThreadCollector 不需要特殊启动逻辑
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        // ThreadCollector 不需要特殊停止逻辑
+    }
 
     /**
      * 采集线程数据
@@ -98,7 +118,7 @@ public class ThreadCollector {
                     deadlockInfoList.add(info);
                 }
                 event.setDeadlockedThreads(deadlockInfoList);
-                LOGGER.warn("Deadlock detected: {} threads", deadlockedThreads.length);
+                logger.warn("Deadlock detected: {} threads", deadlockedThreads.length);
             }
 
             // 构建锁竞争信息
@@ -116,7 +136,7 @@ public class ThreadCollector {
 
             return event;
         } catch (Exception e) {
-            LOGGER.error("Error collecting thread data", e);
+            logger.error("Error collecting thread data", e);
             return null;
         }
     }

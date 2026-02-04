@@ -1,9 +1,9 @@
 package com.alibaba.aletheia.agent.collector.memory;
 
+import com.alibaba.aletheia.agent.collector.BaseCollector;
+import com.alibaba.aletheia.agent.config.AgentConfig;
 import com.alibaba.aletheia.common.model.MemoryEvent;
 import com.alibaba.aletheia.common.util.TimeUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -16,11 +16,31 @@ import java.util.List;
  *
  * @author Aletheia Team
  */
-public class MemoryCollector {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MemoryCollector.class);
+public class MemoryCollector extends BaseCollector {
 
     private final MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+
+    /**
+     * 构造函数
+     */
+    public MemoryCollector(AgentConfig config) {
+        super(config);
+    }
+
+    @Override
+    protected boolean isFeatureEnabled() {
+        return config.isFeatureEnabled("Memory");
+    }
+
+    @Override
+    protected void doStart() throws Exception {
+        // MemoryCollector 不需要特殊启动逻辑
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        // MemoryCollector 不需要特殊停止逻辑
+    }
 
     /**
      * 采集内存数据
@@ -73,12 +93,12 @@ public class MemoryCollector {
                 }
             } catch (Exception e) {
                 // 忽略，直接内存可能无法获取（某些 JVM 版本或配置可能不支持）
-                LOGGER.debug("Unable to get direct memory usage", e);
+                logger.debug("Unable to get direct memory usage", e);
             }
 
             return event;
         } catch (Exception e) {
-            LOGGER.error("Error collecting memory data", e);
+            logger.error("Error collecting memory data", e);
             return null;
         }
     }
